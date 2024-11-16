@@ -27,10 +27,10 @@ sudo pip install pyaudio matplotlib scipy</br>
 
 # check audio devices with input channels
 
-    import pyaudio</br>
-    audio = pyaudio.PyAudio() # start pyaudio</br>
-    for ii in range(0,audio.get_device_count()):</br>
-        # print out device info</br>
-        print(audio.get_device_info_by_index(ii)) </br>
+    import pyaudio
+    audio = pyaudio.PyAudio() # start pyaudio
+    for ii in range(0,audio.get_device_count()):
+        # print out device info
+        print(audio.get_device_info_by_index(ii))
 
 
