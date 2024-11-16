@@ -5,7 +5,6 @@ https://www.pythonguis.com/widgets/equalizerbar/
 chatgpt
 
 # setup process
-rasp
 
 sudo apt-get -y update
 sudo apt-get -y upgrade
