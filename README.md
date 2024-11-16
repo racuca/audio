@@ -1,8 +1,11 @@
 # Raspberry Pi MEMS Mic audio Test
 # reference 
-https://github.com/makerportal/rpi_i2s</br>
-https://www.pythonguis.com/widgets/equalizerbar/</br>
-chatgpt</br>
+https://github.com/makerportal/rpi_i2s
+
+https://www.pythonguis.com/widgets/equalizerbar/
+
+chatgpt
+
 
 # setup process
 
