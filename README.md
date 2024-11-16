@@ -6,9 +6,15 @@ chatgpt</br>
 
 # setup process
 
-sudo apt-get -y update</br>
-sudo apt-get -y upgrade</br>
-sudo reboot</br>
+sudo apt-get -y update
+
+
+sudo apt-get -y upgrade
+
+
+sudo reboot
+
+
 sudo pip3 install --upgrade adafruit-python-shell</br>
 sudo wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/i2smic.py</br>
 sudo python3 i2smic.py</br>
