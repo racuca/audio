@@ -8,18 +8,18 @@ chatgpt</br>
 
 sudo apt-get -y update
 
-
 sudo apt-get -y upgrade
-
 
 sudo reboot
 
-
 sudo pip3 install --upgrade adafruit-python-shell</br>
+
 sudo wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/i2smic.py</br>
+
 sudo python3 i2smic.py</br>
 
 sudo apt-get install libportaudio0 libportaudio2 libportaudiocpp0 portaudio19-dev</br>
+
 sudo pip install pyaudio matplotlib scipy</br>
 
 # check audio devices with input channels
