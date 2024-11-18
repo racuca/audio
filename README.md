@@ -8,7 +8,6 @@ chatgpt
 
 
 # setup process
----
 ## update OS
 
 sudo apt-get -y update
@@ -19,9 +18,17 @@ sudo reboot
 
 ## update python
 
-wget https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tgz
+wget https://www.python.org/ftp/python/3.12.4/Python-3.xx.xx.tgz
 
-tar zxvf Python-3.12.4.tgz
+tar zxvf Python-3.xx.xx.tgz
+
+cd Python-3.xx.xx
+
+./configure --enable-optimizations
+
+sudo make altinstall
+
+
 
 sudo pip3 install --upgrade adafruit-python-shell</br>
 
