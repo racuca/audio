@@ -10,7 +10,7 @@ chatgpt
 # setup process
 #### 0. install OS
 
-Rasbian Bullseye 32bit OS
+Rasbian Bullseye 32bit OS with Python 3.9.2
 
 
 #### 1. update OS
