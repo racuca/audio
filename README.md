@@ -76,11 +76,11 @@ sudo pip3 install --upgrade adafruit-python-shell</br>
 
 sudo wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/i2smic.py</br>
 
-Raspberry-Pi-Installer-Scripts/i2s_mic_module/snd-i2smic-rpi.c
-
 run editor as root. for example ( sudo thonny )
 
-modify simple_card_info to asoc_simple_card_info ( 2 words )
+modify Raspberry-Pi-Installer-Scripts/i2s_mic_module/snd-i2smic-rpi.c
+
+simple_card_info to asoc_simple_card_info ( 2 words )
     
 sudo python3 i2smic.py</br>
 
