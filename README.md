@@ -16,7 +16,7 @@ sudo apt-get -y upgrade
 
 sudo reboot
 
-#### 2. update python
+#### 2. update python (Optional)
 
 wget https://www.python.org/ftp/python/3.xx.xx/Python-3.xx.xx.tgz
 
@@ -42,7 +42,7 @@ python --version
 
 
 
-#### 3. install PyQt5 for equalizer function - Optional
+#### 3. install PyQt5 for equalizer function
 
 sudo apt-get install python3-pyqt5
 
