@@ -90,17 +90,22 @@ sudo apt-get install libportaudio0 libportaudio2 libportaudiocpp0 portaudio19-de
 
 sudo pip install pyaudio matplotlib scipy</br>
 
-#### 5. connect raspberry pi and mems mic
-
-refer to images
-
-#### 6. check audio devices with input channels
+#### 5. check audio devices with input channels
 
     import pyaudio
     audio = pyaudio.PyAudio() # start pyaudio
     for ii in range(0,audio.get_device_count()):
         # print out device info
         print(audio.get_device_info_by_index(ii))
+
+You should see this snd_rpi_i2s_card device.
+
+(1, 'snd_rpi_i2s_card: simple-card_codec_link snd-soc-dummy-dai-0 (hw:1,0)', 2)
+
+#### 6. connect raspberry pi and mems mic
+
+refer to images
+
 
 #### 7. record speech and analyze wave file using fft.
 python i2s_mono.py
