@@ -34,6 +34,10 @@ sudo rm python
 
 sudo ln -s /usr/local/bin/python3.xx python
 
+sudo rm /usr/bin/python3
+
+sudo ln -s /usr/local/bin/python3.xx /usr/bin/python3
+
 python --version
 
 
