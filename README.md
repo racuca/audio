@@ -109,7 +109,7 @@ refer to images
 
 
 #### 7. record speech and analyze wave file using fft.
-python i2s_mono.py
+python i2s_mono.py  ( specify dev_index in line 205 as your device indexes )
 
 python fft_pysimplegui.py
 
