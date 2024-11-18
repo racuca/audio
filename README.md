@@ -59,7 +59,7 @@ Advanced Options -> GL Driver -> GL (Full KMS) OpenGL ...
 reboot
 ---
 
-#### 4. install packages
+#### 4. install packages for pyaudio 
 
 sudo pip3 install --upgrade adafruit-python-shell</br>
 
