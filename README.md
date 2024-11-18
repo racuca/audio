@@ -50,6 +50,9 @@ sudo apt-get install pyside2.*
 
 sudo apt-get install python3-pyside2.*
 
+sudo raspi-config
+
+Advanced Options -> GL Driver -> GL (Full KMS) OpenGL desktop driver with full KMS. After rebooting
 
 #### 4. install packages
 
