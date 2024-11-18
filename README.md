@@ -28,6 +28,14 @@ cd Python-3.xx.xx
 
 sudo make altinstall
 
+cd /usr/bin
+
+sudo rm python
+
+sudo ln -s /usr/local/bin/python3.xx python
+
+python --version
+
 
 ## install packages
 
