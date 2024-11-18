@@ -54,7 +54,9 @@ sudo apt-get install python3-pyside2.*
 #### run for DRI2 error message, but after this, screen may be unstable. 
 sudo raspi-config
 
-Advanced Options -> GL Driver -> GL (Full KMS) OpenGL desktop driver with full KMS. After rebooting
+Advanced Options -> GL Driver -> GL (Full KMS) OpenGL ...
+
+reboot
 ---
 
 #### 4. install packages
