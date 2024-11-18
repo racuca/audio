@@ -57,7 +57,9 @@ sudo raspi-config
 Advanced Options -> GL Driver -> GL (Full KMS) OpenGL ...
 
 reboot
+
 ---
+
 
 #### 4. install packages for pyaudio 
 
