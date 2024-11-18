@@ -8,7 +8,7 @@ chatgpt
 
 
 # setup process
-## 1. update OS
+#### 1. update OS
 
 sudo apt-get -y update
 
@@ -16,7 +16,7 @@ sudo apt-get -y upgrade
 
 sudo reboot
 
-## 2. update python
+#### 2. update python
 
 wget https://www.python.org/ftp/python/3.xx.xx/Python-3.xx.xx.tgz
 
@@ -38,13 +38,13 @@ python --version
 
 
 
-## 3. install PyQt5 for equalizer function - Optional
+#### 3. install PyQt5 for equalizer function - Optional
 
 sudo apt-get install python3-pyqt5
 
 sudo apt-get install qttools5-dev-tools
 
-## 4. install packages
+#### 4. install packages
 
 sudo pip3 install --upgrade adafruit-python-shell</br>
 
@@ -56,11 +56,11 @@ sudo apt-get install libportaudio0 libportaudio2 libportaudiocpp0 portaudio19-de
 
 sudo pip install pyaudio matplotlib scipy</br>
 
-# 5. connect raspberry pi and mems mic
+#### 5. connect raspberry pi and mems mic
 
 refer to images
 
-# 6. check audio devices with input channels
+#### 6. check audio devices with input channels
 
     import pyaudio
     audio = pyaudio.PyAudio() # start pyaudio
@@ -68,7 +68,7 @@ refer to images
         # print out device info
         print(audio.get_device_info_by_index(ii))
 
-# 7. record speech and analyze wave file using fft.
+#### 7. record speech and analyze wave file using fft.
 python i2s_mono.py
 
 python fft_pysimplegui.py
