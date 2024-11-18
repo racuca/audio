@@ -29,6 +29,7 @@ cd Python-3.xx.xx
 sudo make altinstall
 
 
+## install packages
 
 sudo pip3 install --upgrade adafruit-python-shell</br>
 
