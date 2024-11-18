@@ -24,7 +24,7 @@ tar zxvf Python-3.xx.xx.tgz
 
 cd Python-3.xx.xx
 
-./configure --enable-optimizations
+./configure --enable-optimizations --with-openssl=/usr/local/ssl --with-openssl-rpath=auto
 
 sudo make altinstall
 
