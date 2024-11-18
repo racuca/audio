@@ -38,13 +38,13 @@ python --version
 
 
 
-## install PyQt5 
+## 3. install PyQt5 for equalizer function - Optional
 
 sudo apt-get install python3-pyqt5
 
 sudo apt-get install qttools5-dev-tools
 
-## 3. install packages
+## 4. install packages
 
 sudo pip3 install --upgrade adafruit-python-shell</br>
 
@@ -56,11 +56,11 @@ sudo apt-get install libportaudio0 libportaudio2 libportaudiocpp0 portaudio19-de
 
 sudo pip install pyaudio matplotlib scipy</br>
 
-# 4. connect raspberry pi and mems mic
+# 5. connect raspberry pi and mems mic
 
 refer to images
 
-# 5. check audio devices with input channels
+# 6. check audio devices with input channels
 
     import pyaudio
     audio = pyaudio.PyAudio() # start pyaudio
@@ -68,8 +68,9 @@ refer to images
         # print out device info
         print(audio.get_device_info_by_index(ii))
 
-# 6. record speech and analyze wave file using fft.
+# 7. record speech and analyze wave file using fft.
 python i2s_mono.py
 
-python pysimplegui.py
+python fft_pysimplegui.py
 
+python fft_prompt.py
