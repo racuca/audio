@@ -57,4 +57,8 @@ sudo pip install pyaudio matplotlib scipy</br>
         # print out device info
         print(audio.get_device_info_by_index(ii))
 
+## install PyQt5 
 
+sudo apt-get install python3-pyqt5
+
+sudo apt-get install qttools5-dev-tools
