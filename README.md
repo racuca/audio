@@ -89,6 +89,8 @@ sudo apt-get install libportaudio0 libportaudio2 libportaudiocpp0 portaudio19-de
 
 sudo pip install pyaudio matplotlib scipy</br>
 
+sudo apt-get install libopenblas-dev
+
 #### 5. check audio devices with input channels
 
     import pyaudio
