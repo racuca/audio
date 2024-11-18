@@ -8,6 +8,11 @@ chatgpt
 
 
 # setup process
+#### 0. install OS
+
+Rasbian Bullseye 32bit OS
+
+
 #### 1. update OS
 
 sudo apt-get -y update
