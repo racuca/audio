@@ -18,7 +18,7 @@ sudo reboot
 
 ## update python
 
-wget https://www.python.org/ftp/python/3.12.4/Python-3.xx.xx.tgz
+wget https://www.python.org/ftp/python/3.xx.xx/Python-3.xx.xx.tgz
 
 tar zxvf Python-3.xx.xx.tgz
 
