@@ -16,8 +16,8 @@ class EqualizerBar(QtWidgets.QWidget):
         super().__init__(*args, **kwargs)
 
         self.setSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding,
-            QtWidgets.QSizePolicy.MinimumExpanding
+            QtWidgets.QSizePolicy.Fixed,
+            QtWidgets.QSizePolicy.Fixed
         )
 
         if isinstance(steps, list):
@@ -94,7 +94,7 @@ class EqualizerBar(QtWidgets.QWidget):
         painter.end()
 
     def sizeHint(self):
-        return QtCore.QSize(20, 120)
+        return QtCore.QSize(800, 400)
 
     def _trigger_refresh(self):
         self.update()
