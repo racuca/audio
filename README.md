@@ -59,7 +59,7 @@ sudo apt-get install pyside2.*
 
 sudo apt-get install python3-pyside2.*
 
-#### run for DRI2 error message, but after this, screen may be unstable. this command is just optional. 
+####  **** run for DRI2 error message, but after this, screen may be unstable. this command is just optional. ****
 sudo raspi-config
 
 Advanced Options -> GL Driver -> GL (Full KMS) OpenGL ...
