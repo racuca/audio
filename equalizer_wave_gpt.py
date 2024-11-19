@@ -23,6 +23,8 @@ class EqualizerWindow(QMainWindow):
             bar.setPos(40 * i, 0)
             self.scene.addItem(bar)
 
+        self.view.setFixedSize(800,400)  # 화면 왼쪽상단에 작게 나오는 문제 수정
+            
         self.wave_file = wave_file
         self.wave_data = self.read_wave_file(self.wave_file)
         self.chunk_size = 1024  # 한 번에 읽을 샘플의 수
