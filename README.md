@@ -59,27 +59,24 @@ sudo apt-get install pyside2.*
 
 sudo apt-get install python3-pyside2.*
 
----
-#### run for DRI2 error message, but after this, screen may be unstable. 
+#### run for DRI2 error message, but after this, screen may be unstable. this command is just optional. 
 sudo raspi-config
 
 Advanced Options -> GL Driver -> GL (Full KMS) OpenGL ...
 
 reboot
 
----
-
 
 #### 4. install packages for pyaudio 
 
-sudo pip3 install --upgrade adafruit-python-shell</br>
+sudo pip3 install --upgrade adafruit-python-shell
 
-sudo wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/i2smic.py</br>
+sudo wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/i2smic.py
 
     # modify source
-    run editor as root. for example ( sudo thonny )
+    run editor as root. for example, sudo thonny
     modify Raspberry-Pi-Installer-Scripts/i2s_mic_module/snd-i2smic-rpi.c
-    simple_card_info to asoc_simple_card_info ( 2 words )
+    simple_card_info to asoc_simple_card_info
     
 sudo python3 i2smic.py</br>
 
