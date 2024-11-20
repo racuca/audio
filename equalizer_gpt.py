@@ -26,7 +26,7 @@ class EqualizerWindow(QMainWindow):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_equalizer)
-        self.timer.start(50)  # 50ms마다 업데이트
+        self.timer.start(50)  # 50ms update
 
         self.pyaudio_stream = None
         self.chunk_size = 1024
