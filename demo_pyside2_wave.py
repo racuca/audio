@@ -67,7 +67,6 @@ class Window(QtWidgets.QMainWindow):
         if self.fileName is None:
             return
         self.read_wave_file(self.fileName[0])
-        self.open_stream(False)
         self._timer.start()
         pass
 
