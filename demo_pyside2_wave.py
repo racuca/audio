@@ -1,3 +1,7 @@
+# Source that implement equalizer of wave file using wave module
+# reference code : https://www.pythonguis.com/widgets/equalizerbar/
+# 2024.11.19
+
 from PySide2 import QtCore, QtWidgets
 from equalizer_bar import EqualizerBar
 from PySide2.QtWidgets import QFileDialog
