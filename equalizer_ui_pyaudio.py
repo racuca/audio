@@ -20,7 +20,7 @@ class AudioPlayer(QThread):
         self.bars = [0 for _ in range(len(self.bands))]
         self.rate = 0
         self.num_frames = 0
-
+        self.max_amplitude = 0
         self.running = True
 
     def run(self):
@@ -69,10 +69,14 @@ class AudioPlayer(QThread):
         for i, (low, high) in enumerate(self.bands):
             band_amplitudes[i] = np.sum(fft_data[(freqs >= low) & (freqs < high)])
 
-        # bar update for each amplitude
-        max_amplitude = max(band_amplitudes)
+        # bar update for each amplitude        
+        instance_max = max(band_amplitudes)
+        if instance_max == 0:
+            self.max_amplitude = 0
+        else:
+            self.max_amplitude = max(instance_max, self.max_amplitude)        
         for i, amplitude in enumerate(band_amplitudes):
-            bar_height = int(100 * amplitude / max_amplitude) if max_amplitude > 0 else 0
+            bar_height = int(100 * amplitude / self.max_amplitude) if self.max_amplitude > 0 else 0
             self.bars[i] = bar_height
 
 
