@@ -15,7 +15,7 @@ class AudioPlayer(QThread):
         self.file_path = file_path
         self.chunk_size = 1024  # 오디오 데이터 청크 크기
         # frequency range setting ( 5 ranges )
-        self.bands = [(20, 100), (100, 500), (500, 750), (750, 1000), (1000, 2000),
+        self.bands = [(20, 300), (300, 500), (500, 800), (800, 1200), (1200, 2000),
                       (2000, 3000), (3000, 5000), (5000, 10000),(10000, 20000), (20000, 50000)]
         self.bars = [0 for _ in range(len(self.bands))]
         self.rate = 0
