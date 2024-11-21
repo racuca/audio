@@ -4,6 +4,7 @@ import numpy as np
 import pyaudio
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QProgressBar
+from equalizer_bar import EqualizerBar
 
 
 class AudioPlayer(QThread):
@@ -69,22 +70,12 @@ class EqualizerUI(QMainWindow):
     def __init__(self, file_path):
         super().__init__()
         self.setWindowTitle("Real-Time Equalizer")
-        self.setGeometry(100, 100, 400, 300)
 
         # Layout 설정
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout()
-        central_widget.setLayout(layout)
-
-        # Equalizer Bar 생성
-        self.bars = []
-        for _ in range(5):  # 대역 수에 맞게 설정
-            bar = QProgressBar()
-            bar.setRange(0, 100)  # 0~100 사이로 설정
-            layout.addWidget(bar)
-            self.bars.append(bar)
-
+        self.equalizer = EqualizerBar(10, ['#0C0786', '#40039C', '#6A00A7', '#8F0DA3', '#B02A8F', '#CA4678', '#E06461',
+                                          '#F1824C', '#FCA635', '#FCCC25', '#EFF821'])
+        self.setCentralWidget(self.equalizer)
+        
         # Audio Player 설정
         self.audio_thread = AudioPlayer(file_path)
         self.audio_thread.update_equalizer.connect(self.update_bars)
@@ -98,9 +89,9 @@ class EqualizerUI(QMainWindow):
 
     def update_bars(self, amplitudes):
         """Equalizer Bar를 업데이트"""
-        for i, amp in enumerate(amplitudes):
-            self.bars[i].setValue(int(min(amp / 1000, 100)))  # 적절히 정규화
-
+        #for i, amp in enumerate(amplitudes):
+        #    self.bars[i].setValue(int(min(amp / 1000, 100)))  # 적절히 정규화
+        self.equalizer.setValues(amplitudes)
 
 # 실행
 if __name__ == "__main__":
