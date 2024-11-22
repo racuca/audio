@@ -5,6 +5,8 @@ import pyaudio
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QProgressBar
 
+# Input Output Setting
+AudioOutput = False
 
 class AudioPlayer(QThread):
     update_equalizer = pyqtSignal(list)  # Equalizer 데이터를 업데이트하는 Signal
@@ -14,33 +16,47 @@ class AudioPlayer(QThread):
         self.file_path = file_path
         self.chunk_size = 1024  # 오디오 데이터 청크 크기
         self.running = True
+        self.framerate = 0
 
     def run(self):
-        # WAV 파일 열기
-        wf = wave.open(self.file_path, 'rb')
         p = pyaudio.PyAudio()
 
-        # 오디오 스트림 열기
-        stream = p.open(
-            format=p.get_format_from_width(wf.getsampwidth()),
-            channels=wf.getnchannels(),
-            rate=wf.getframerate(),
-            output=True
-        )
+        if AudioOutput:
+            # WAV 파일 열기
+            wf = wave.open(self.file_path, 'rb')
+            self.framerate = wf.getframerate()
+
+            # 오디오 스트림 열기
+            stream = p.open(
+                format=p.get_format_from_width(wf.getsampwidth()),
+                channels=wf.getnchannels(),
+                rate=self.framerate,
+                output=True
+            )
+        else:
+            self.framerate = 44100
+            stream = p.open(format=pyaudio.paInt16,
+            channels=1,
+            rate=44100,
+            input=True,
+            input_device_index=1,
+            frames_per_buffer=1024)
 
         # 데이터 읽기 및 재생
         while self.running:
-            data = wf.readframes(self.chunk_size)
+            if AudioOutput:
+                data = wf.readframes(self.chunk_size)
+                # 스트림에 데이터 쓰기
+                stream.write(data)
+            else:
+                data = stream.read(1024)
             if not data:
                 break
-
-            # 스트림에 데이터 쓰기
-            stream.write(data)
 
             # FFT로 주파수 분석
             audio_data = np.frombuffer(data, dtype=np.int16)
             fft_data = np.abs(np.fft.fft(audio_data))[:len(audio_data) // 2]  # 절반만 사용
-            freqs = np.fft.fftfreq(len(audio_data), d=1/wf.getframerate())[:len(audio_data) // 2]
+            freqs = np.fft.fftfreq(len(audio_data), d=1/self.framerate)[:len(audio_data) // 2]
             band_amplitudes = self.calculate_bands(fft_data, freqs)
 
             # UI 업데이트 신호 전송
@@ -49,7 +65,8 @@ class AudioPlayer(QThread):
         # 스트림 종료
         stream.stop_stream()
         stream.close()
-        wf.close()
+        if AudioOutput:
+            wf.close()
         p.terminate()
 
     def calculate_bands(self, fft_data, freqs):
