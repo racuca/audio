@@ -17,6 +17,7 @@ class AudioPlayer(QThread):
         self.chunk_size = 1024  # 오디오 데이터 청크 크기
         self.running = True
         self.framerate = 0
+        self.input_device_index = 1
 
     def run(self):
         p = pyaudio.PyAudio()
@@ -39,7 +40,7 @@ class AudioPlayer(QThread):
             channels=1,
             rate=44100,
             input=True,
-            input_device_index=1,
+            input_device_index=self.input_device_index,
             frames_per_buffer=1024)
 
         # 데이터 읽기 및 재생
