@@ -5,8 +5,23 @@ import pyaudio
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QAction, 
                             QFileDialog, QLabel, QDialog, QPushButton, QTabWidget, 
-                            QCheckBox, QHBoxLayout, QTableWidget, QTableWidgetItem, QRadioButton, QButtonGroup)
+                            QCheckBox, QHBoxLayout, QTableWidget, QTableWidgetItem, QRadioButton, QButtonGroup, QListWidget, QFrame)
 from equalizer_bar import EqualizerBar
+
+# 예제 색상 프리셋 (12단계)
+color_presets = {
+    0: ['#FF0000', '#FF4500', '#FFA500', '#FFFF00', '#ADFF2F', '#00FF00', '#32CD32', '#40E0D0', '#1E90FF', '#0000FF', '#8A2BE2', '#9400D3'],
+    1: ['#9400D3', '#8A2BE2', '#0000FF', '#1E90FF', '#40E0D0', '#32CD32', '#00FF00', '#ADFF2F', '#FFFF00', '#FFA500', '#FF4500', '#FF0000'],
+    2: ['#0C0786', '#260392', '#40039C', '#5904A4', '#6A00A7', '#8F0DA3', '#B02A8F', '#CA4678', '#E06461', '#F1824C', '#FCA635', '#EFF821'],
+    3: ['#1B263B', '#23314C', '#2D3E60', '#3C4A69', '#4E5F85', '#586994', '#7796B5', '#99B8D4', '#B0D4E3', '#D2E7F2', '#EAF2F8', '#F5F9FD'],
+    4: ['#3B302F', '#4A423F', '#5A504D', '#785C4F', '#9B7B59', '#C89E6A', '#E4B97B', '#EBDCA8', '#F5EAD3', '#D2C197', '#B89C6E', '#8A6E4B'],
+    5: ['#2E2927', '#4A403E', '#6B5A57', '#866D60', '#A27F68', '#BD956F', '#D4AC80', '#E8C898', '#F5E3B4', '#D8BA88', '#B99C6B', '#8D704D'],
+    6: ['#00FF7F'] * 12,  # 단색 Preset
+    7: ['#FFD700'] * 12,
+    8: ['#DC143C'] * 12,
+    9: ['#DC143C'] * 12,
+    10: ['#FFFFFF'] * 12
+}
 
 
 class AudioPlayer(QThread):
@@ -89,17 +104,65 @@ class AudioPlayer(QThread):
         self.running = False
 
 
+class EqualizerPreview(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        # 메인 레이아웃 (수평)
+        layout = QHBoxLayout()
+
+        # 왼쪽: Color 리스트 (QListWidget)
+        self.color_list = QListWidget()
+        self.color_list.addItems([f"Preset {i + 1}" for i in range(len(color_presets))])  # 5개의 프리셋 추가
+        self.color_list.currentRowChanged.connect(self.update_preview)  # 선택 변경 시 핸들러 연결
+        layout.addWidget(self.color_list, 1)
+
+        # 오른쪽: Equalizer 색상 바 미리보기
+        self.preview_frame = QWidget()
+        self.preview_layout = QVBoxLayout(self.preview_frame)
+        self.preview_frame.setStyleSheet("background-color: black;")
+
+        # 12단계 Equalizer Bar 추가
+        self.bars = []
+        for i in range(12):
+            bar = QFrame()
+            bar.setFixedHeight(20)
+            bar.setStyleSheet("background-color: black;")
+            self.bars.append(bar)
+            self.preview_layout.addWidget(bar)
+
+        layout.addWidget(self.preview_frame, 1)
+        self.setLayout(layout)
+        self.selected_equalizer_index = 0
+
+    def update_preview(self, row):
+        """
+        Bar color update
+        """
+
+        # 선택한 프리셋 색상으로 Bar 업데이트
+        if row in color_presets:
+            colors = color_presets[row]
+            for i, bar in enumerate(self.bars):
+                bar.setStyleSheet(f"background-color: {colors[i]};")
+        
+        self.selected_color_index = row
+
+
 class SettingsDialog(QDialog):
-    def __init__(self, devices):
+    def __init__(self, devices, colorpresetnum):
         super().__init__()
         self.setWindowTitle("Settings")
         self.setGeometry(100, 100, 600, 400)
         
         self.selected_device_index = None  # 선택한 디바이스 인덱스
         self.devices = devices
+        self.selected_equalizer_index = colorpresetnum
 
         layout = QVBoxLayout()
-        #layout.addWidget(QLabel("Settings dialog."))
+        layout.addWidget(QLabel("Settings dialog."))
 
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
@@ -122,21 +185,13 @@ class SettingsDialog(QDialog):
         tab = QWidget()
         tab_layout = QVBoxLayout(tab)
 
-        #devices = [
-        #    (0, "Microphone (Realtek Audio)", 2),
-        #    (1, "USB Audio Device", 1),
-        #    (2, "Webcam Microphone", 1),
-        #    (3, "Virtual Audio Cable", 2),
-        #    (4, "External USB Microphone", 2)
-        #]
-
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Select", "Device Name", "Input Channels"])
         self.table.setRowCount(len(self.devices))
 
         self.radio_group = QButtonGroup(self)
-        self.radio_group.setExclusive(True)  # 라디오 버튼은 하나만 선택 가능
+        self.radio_group.setExclusive(True)
 
         for row, (index, name, channels) in enumerate(self.devices):
             radio_button = QRadioButton()
@@ -161,11 +216,18 @@ class SettingsDialog(QDialog):
 
         tab_layout.addWidget(self.table)
         self.tabs.addTab(tab, "Audio Settings")
+        
+        # Equalizer Preview
+        self.equalizer_tab = EqualizerPreview()
+        self.equalizer_tab.update_preview(self.selected_equalizer_index)
+        self.tabs.addTab(self.equalizer_tab, "Equalizer Preview")
+
 
     def accept(self):
         selected_button = self.radio_group.checkedButton()
         if selected_button:
             self.selected_device_index = self.radio_group.id(selected_button)
+        self.selected_equalizer_index = self.equalizer_tab.selected_color_index
         super().accept()
 
 
@@ -174,17 +236,12 @@ class EqualizerUI(QMainWindow):
         super().__init__()
         self.setWindowTitle("Real-Time Equalizer")
 
+        self.colorpresetnum = 0
         # Layout setting
-        self.equalizer = EqualizerBar(10, ['#0C0786', '#40039C', '#6A00A7', '#8F0DA3', '#B02A8F', '#CA4678', '#E06461',
-                                          '#F1824C', '#FCA635', '#FCCC25', '#EFF821'])
-        #self.equalizer = EqualizerBar(10, ['#1B263B', '#23314C', '#2D3E60', '#3C4A69', '#4E5F85',
-        #                                    '#586994', '#7796B5', '#99B8D4', '#B0D4E3', '#D2E7F2', '#EAF2F8', '#F5F9FD'])
-        #self.equalizer = EqualizerBar(10, ['#3B302F', '#5A504D', '#785C4F', '#9B7B59', '#C89E6A',
-        #                                    '#E4B97B', '#EBDCA8', '#F5EAD3', '#D2C197', '#B89C6E', '#8A6E4B'])
-        #self.equalizer = EqualizerBar(10, ['#2E2927', '#4A403E', '#6B5A57', '#866D60', '#A27F68',
-        #                                    '#BD956F', '#D4AC80', '#E8C898', '#F5E3B4', '#D8BA88', '#B99C6B', '#8D704D'])
+        self.equalizer = EqualizerBar(10, color_presets[self.colorpresetnum])
         self.devices = []
         self.selected_device_index = 0 # for input audio
+        self.selected_equalizer_index = 0
 
         self.setCentralWidget(self.equalizer)
         
@@ -247,7 +304,7 @@ class EqualizerUI(QMainWindow):
             dev = p.get_device_info_by_index(i)
             self.devices.append((i, dev['name'], dev['maxInputChannels']))
 
-        dialog = SettingsDialog(self.devices)
+        dialog = SettingsDialog(self.devices, self.selected_equalizer_index)
         if dialog.exec_() == QDialog.Accepted:
             selected_index = dialog.selected_device_index
             if selected_index is not None:
@@ -255,7 +312,9 @@ class EqualizerUI(QMainWindow):
                 self.statusBar().showMessage(f"Selected device: {device_name} (Index: {selected_index})")
             else:
                 self.statusBar().showMessage("No device selected.")
-        self.selected_device_index = selected_index
+            self.selected_device_index = selected_index
+            self.selected_equalizer_index = dialog.selected_equalizer_index
+            self.equalizer.setColorPreset(color_presets[self.selected_equalizer_index])
 
     def start(self):
         self.audio_thread.start()

@@ -154,3 +154,7 @@ class EqualizerBar(QtWidgets.QWidget):
         self._background_color = QtGui.QColor(color)
         self.update()
 
+    def setColorPreset(self, colorlist):
+        self.n_steps = len(colorlist)
+        self.steps = colorlist
+        
