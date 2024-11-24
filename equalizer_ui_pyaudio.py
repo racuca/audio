@@ -5,7 +5,8 @@ import pyaudio
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, QAction, 
                             QFileDialog, QLabel, QDialog, QPushButton, QTabWidget, 
-                            QCheckBox, QHBoxLayout, QTableWidget, QTableWidgetItem, QRadioButton, QButtonGroup, QListWidget, QFrame)
+                            QCheckBox, QHBoxLayout, QTableWidget, QTableWidgetItem, 
+                            QRadioButton, QButtonGroup, QListWidget, QFrame, QHeaderView)
 from equalizer_bar import EqualizerBar
 
 # 예제 색상 프리셋 (12단계)
@@ -23,6 +24,8 @@ color_presets = {
     10: ['#FFFFFF'] * 12
 }
 
+frequency_band = [(20, 300), (300, 500), (500, 800), (800, 1200), (1200, 2000),
+                      (2000, 3000), (3000, 5000), (5000, 10000),(10000, 20000), (20000, 50000)]
 
 class AudioPlayer(QThread):
     update_equalizer = pyqtSignal(list)  # Equalizer Signal
@@ -32,8 +35,7 @@ class AudioPlayer(QThread):
         self.file_path = file_path
         self.chunk_size = 1024  # audio data chunk size
         # frequency range setting ( 5 ranges )
-        self.bands = [(20, 300), (300, 500), (500, 800), (800, 1200), (1200, 2000),
-                      (2000, 3000), (3000, 5000), (5000, 10000),(10000, 20000), (20000, 50000)]
+        self.bands = frequency_band
         self.bars = [0 for _ in range(len(self.bands))]
         self.rate = 0
         self.num_frames = 0
@@ -152,8 +154,8 @@ class EqualizerPreview(QWidget):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, devices, colorpresetnum):
-        super().__init__()
+    def __init__(self, parent, devices, colorpresetnum):
+        super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setGeometry(100, 100, 600, 400)
         
@@ -168,7 +170,9 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.tabs)
 
         self.create_audio_tab()
-        
+        self.create_preview_tab()
+        self.create_frequencyband_tab()
+
         button_layout = QHBoxLayout()
         ok_button = QPushButton("OK")
         cancel_button = QPushButton("Cancel")
@@ -180,15 +184,29 @@ class SettingsDialog(QDialog):
 
         self.setLayout(layout)
 
+    def showEvent(self, event):
+        """Override showEvent to center the dialog."""
+        self.center()
+        super().showEvent(event)
+    
+    def center(self):
+        """Center the dialog in the parent window."""
+        if self.parent():
+            parent_geometry = self.parent().geometry()
+            dialog_geometry = self.geometry()
+            x = parent_geometry.x() + (parent_geometry.width() - dialog_geometry.width()) // 2
+            y = parent_geometry.y() + (parent_geometry.height() - dialog_geometry.height()) // 2
+            self.move(x, y)
+
     def create_audio_tab(self):
         """Audio Settings Tab"""
         tab = QWidget()
         tab_layout = QVBoxLayout(tab)
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Select", "Device Name", "Input Channels"])
-        self.table.setRowCount(len(self.devices))
+        table = QTableWidget()
+        table.setColumnCount(3)
+        table.setHorizontalHeaderLabels(["Select", "Device Name", "Input Channels"])
+        table.setRowCount(len(self.devices))
 
         self.radio_group = QButtonGroup(self)
         self.radio_group.setExclusive(True)
@@ -201,33 +219,78 @@ class SettingsDialog(QDialog):
             radio_layout.setAlignment(Qt.AlignCenter)
             radio_layout.setContentsMargins(0, 0, 0, 0)
             radio_widget.setLayout(radio_layout)
-            self.table.setCellWidget(row, 0, radio_widget)
+            table.setCellWidget(row, 0, radio_widget)
             self.radio_group.addButton(radio_button, index)
 
             # Device Name
-            self.table.setItem(row, 1, QTableWidgetItem(name))
+            table.setItem(row, 1, QTableWidgetItem(name))
 
             # Input Channels
-            self.table.setItem(row, 2, QTableWidgetItem(str(channels)))
+            table.setItem(row, 2, QTableWidgetItem(str(channels)))
 
         # 테이블 옵션
-        self.table.resizeColumnsToContents()
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)  # 셀 편집 비활성화
+        table.resizeColumnsToContents()
+        table.setEditTriggers(QTableWidget.NoEditTriggers)  # 셀 편집 비활성화
 
-        tab_layout.addWidget(self.table)
+        tab_layout.addWidget(table)
         self.tabs.addTab(tab, "Audio Settings")
-        
-        # Equalizer Preview
+    
+    # Equalizer Preview tab
+    def create_preview_tab(self):
         self.equalizer_tab = EqualizerPreview()
         self.equalizer_tab.update_preview(self.selected_equalizer_index)
         self.tabs.addTab(self.equalizer_tab, "Equalizer Preview")
 
+    # Frequency band Tab
+    def create_frequencyband_tab(self):
+        self.freqband_tab = QWidget()        
+        layout = QVBoxLayout()
+
+        # Frequency bands: (Low, High)
+        self.frequency_bands = frequency_band
+        # Table for frequency bands
+        self.freqband_table = QTableWidget(len(self.frequency_bands), 2)
+        self.freqband_table.setHorizontalHeaderLabels(["Low Frequency (Hz)", "High Frequency (Hz)"])
+        self.freqband_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.populate_table(self.freqband_table)
+        layout.addWidget(self.freqband_table)
+
+        self.freqband_tab.setLayout(layout)
+        self.tabs.addTab(self.freqband_tab, "Frequency Bands")
+    
+    #Populate the table with the current frequency bands.
+    def populate_table(self, table):
+        for row, (low, high) in enumerate(self.frequency_bands):
+            low_item = QTableWidgetItem(str(low))
+            high_item = QTableWidgetItem(str(high))
+            table.setItem(row, 0, low_item)
+            table.setItem(row, 1, high_item)
+
 
     def accept(self):
+        # audio device tab
         selected_button = self.radio_group.checkedButton()
         if selected_button:
             self.selected_device_index = self.radio_group.id(selected_button)
+        
+        # equalizer tab
         self.selected_equalizer_index = self.equalizer_tab.selected_color_index
+
+        # frequency band tab
+        try:
+            updated_bands = []
+            for row in range(self.freqband_table.rowCount()):
+                low = int(self.freqband_table.item(row, 0).text())
+                high = int(self.freqband_table.item(row, 1).text())
+                if low >= high:
+                    raise ValueError(f"Low frequency ({low}) must be less than High frequency ({high}).")
+                updated_bands.append((low, high))
+            
+            self.frequency_bands = updated_bands
+            print("Updated Frequency Bands:", self.frequency_bands)
+        except ValueError as e:
+            print(f"Error: {e}")
+
         super().accept()
 
 
@@ -298,13 +361,15 @@ class EqualizerUI(QMainWindow):
         self.stop()
 
     def onSettingMenu(self):
+        global frequency_band
+
         self.devices = []
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             dev = p.get_device_info_by_index(i)
             self.devices.append((i, dev['name'], dev['maxInputChannels']))
 
-        dialog = SettingsDialog(self.devices, self.selected_equalizer_index)
+        dialog = SettingsDialog(self, self.devices, self.selected_equalizer_index)
         if dialog.exec_() == QDialog.Accepted:
             selected_index = dialog.selected_device_index
             if selected_index is not None:
@@ -315,6 +380,8 @@ class EqualizerUI(QMainWindow):
             self.selected_device_index = selected_index
             self.selected_equalizer_index = dialog.selected_equalizer_index
             self.equalizer.setColorPreset(color_presets[self.selected_equalizer_index])
+
+            frequency_band = dialog.frequency_bands
 
     def start(self):
         self.audio_thread.start()
@@ -337,8 +404,6 @@ if __name__ == "__main__":
     file_path = "data/lvb-sym-5-1.wav"
     main_window = EqualizerUI(file_path)
     main_window.show()
-
-    #main_window.start()
 
     try:
         sys.exit(app.exec_())
