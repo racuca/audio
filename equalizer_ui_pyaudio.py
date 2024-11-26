@@ -41,6 +41,7 @@ class AudioPlayer(QThread):
         self.running = True
         self.audiotype = audiotype
         self.input_index = input_device_index
+        self.p = pyaudio.PyAudio()
 
         # open WAV file
         # sampling rate, channels, sample length
@@ -57,18 +58,17 @@ class AudioPlayer(QThread):
         self.chunk_size = 1024  # audio data chunk size
 
     def run(self):
-        p = pyaudio.PyAudio()
 
         # open audio stream
         if self.audiotype == 0:
-            stream = p.open(
-                format=p.get_format_from_width(self.wf.getsampwidth()),
+            stream = self.p.open(
+                format= self.p.get_format_from_width(self.wf.getsampwidth()),
                 channels=self.channels,
                 rate=self.rate,
                 output=True
             )
         elif self.audiotype == 1:
-            stream = p.open(
+            stream = self.p.open(
                 format=pyaudio.paInt16,
                 channels=self.channels,
                 rate=self.rate,
@@ -108,9 +108,11 @@ class AudioPlayer(QThread):
         # stream end
         stream.stop_stream()
         stream.close()
+        print("stream close")
         if self.audiotype == 0:
             self.wf.close()
-        p.terminate()
+        self.p.terminate()
+        print("pyaudio terminate")
         self.audiostatus.emit(True)
 
     def calculate_bands(self, fft_data, freqs):
@@ -403,6 +405,7 @@ class EqualizerUI(QMainWindow):
                 background-color: #4973b3;
             }
         """)
+        self.checkdevices()
 
     # play wave file
     def onWaveFileMenu(self):
@@ -423,6 +426,11 @@ class EqualizerUI(QMainWindow):
         
     # input audio signal from mic
     def onInputAudioMenu(self):
+        # check device has input channels
+        if self.devices[self.selected_device_index][2] == 0:
+            self.status_bar.showMessage("No Input Device. Select a input device in setting.")
+            return
+
         self.commandtype = 1
         if self.isrunning:
             self.stop()
@@ -440,11 +448,7 @@ class EqualizerUI(QMainWindow):
     def onSettingMenu(self):
         global frequency_band
 
-        self.devices = []
-        p = pyaudio.PyAudio()
-        for i in range(p.get_device_count()):
-            dev = p.get_device_info_by_index(i)
-            self.devices.append((i, dev['name'], dev['maxInputChannels']))
+        self.checkdevices()
 
         dialog = SettingsDialog(self, [self.devices, self.selected_device_index, self.selected_equalizer_index])
         if dialog.exec_() == QDialog.Accepted:
@@ -460,6 +464,13 @@ class EqualizerUI(QMainWindow):
 
             frequency_band = dialog.frequency_bands
         
+    def checkdevices(self):
+        self.devices = []
+        p = pyaudio.PyAudio()
+        for i in range(p.get_device_count()):
+            dev = p.get_device_info_by_index(i)
+            self.devices.append((i, dev['name'], dev['maxInputChannels']))
+        p.terminate()
 
 
     def start(self):
