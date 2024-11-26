@@ -31,7 +31,7 @@ class AudioPlayer(QThread):
     update_equalizer = pyqtSignal(list)  # Equalizer Signal
     audiostatus = pyqtSignal(bool)  # Audio End Signal
 
-    def __init__(self, file_path, audiotype=0, input_device_index=0):
+    def __init__(self, file_path, audiotype=0, device_index=0):
         super().__init__()
         self.file_path = file_path
         # frequency range setting
@@ -40,7 +40,7 @@ class AudioPlayer(QThread):
         self.max_amplitude = 0
         self.running = True
         self.audiotype = audiotype
-        self.input_index = input_device_index
+        self.input_index = device_index
         self.p = pyaudio.PyAudio()
 
         # open WAV file
@@ -65,7 +65,8 @@ class AudioPlayer(QThread):
                 format= self.p.get_format_from_width(self.wf.getsampwidth()),
                 channels=self.channels,
                 rate=self.rate,
-                output=True
+                output=True,
+                output_device_index=self.input_index,
             )
         elif self.audiotype == 1:
             stream = self.p.open(
@@ -232,14 +233,14 @@ class SettingsDialog(QDialog):
         tab_layout = QVBoxLayout(tab)
 
         table = QTableWidget()
-        table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["Select", "Device Name", "Input Channels"])
+        table.setColumnCount(4)
+        table.setHorizontalHeaderLabels(["Select", "Device Name", "Input Channels", "Output Channels"])
         table.setRowCount(len(self.devices))
 
         self.radio_group = QButtonGroup(self)
         self.radio_group.setExclusive(True)
 
-        for row, (index, name, channels) in enumerate(self.devices):
+        for row, (index, name, inputchannels, outputchannels) in enumerate(self.devices):
             radio_button = QRadioButton()
             radio_widget = QWidget()
             radio_layout = QHBoxLayout(radio_widget)
@@ -250,11 +251,11 @@ class SettingsDialog(QDialog):
             table.setCellWidget(row, 0, radio_widget)
             self.radio_group.addButton(radio_button, index)
 
-            # Device Name
+            # column data
             table.setItem(row, 1, QTableWidgetItem(name))
+            table.setItem(row, 2, QTableWidgetItem(str(inputchannels)))
+            table.setItem(row, 3, QTableWidgetItem(str(outputchannels)))
 
-            # Input Channels
-            table.setItem(row, 2, QTableWidgetItem(str(channels)))
             if row == self.selected_device_index:
                 radio_button.setChecked(True)
 
@@ -419,7 +420,7 @@ class EqualizerUI(QMainWindow):
             self.stop()
             
         # Audio Player 
-        self.audioplayer = AudioPlayer(file_path, audiotype=0)
+        self.audioplayer = AudioPlayer(file_path, audiotype=0, device_index=self.selected_device_index)
         self.audioplayer.update_equalizer.connect(self.update_bars)
         self.audioplayer.audiostatus.connect(self.checkaudiostatus)
         self.start()
@@ -435,7 +436,7 @@ class EqualizerUI(QMainWindow):
         if self.isrunning:
             self.stop()
 
-        self.audioplayer = AudioPlayer(file_path=None, audiotype=1)
+        self.audioplayer = AudioPlayer(file_path=None, audiotype=1, device_index=self.selected_device_index)
         self.audioplayer.update_equalizer.connect(self.update_bars)
         self.audioplayer.audiostatus.connect(self.checkaudiostatus)
         self.start()
@@ -469,7 +470,7 @@ class EqualizerUI(QMainWindow):
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             dev = p.get_device_info_by_index(i)
-            self.devices.append((i, dev['name'], dev['maxInputChannels']))
+            self.devices.append((i, dev['name'], dev['maxInputChannels'], dev['maxOutputChannels']))
         p.terminate()
 
 
