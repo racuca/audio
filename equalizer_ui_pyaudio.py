@@ -29,60 +29,78 @@ frequency_band = [(20, 300), (300, 500), (500, 800), (800, 1200), (1200, 2000),
 
 class AudioPlayer(QThread):
     update_equalizer = pyqtSignal(list)  # Equalizer Signal
-    audiostatus = pyqtSignal(bool)  # Audio Signal
+    audiostatus = pyqtSignal(bool)  # Audio End Signal
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, audiotype=0, input_device_index=0):
         super().__init__()
         self.file_path = file_path
-        # frequency range setting ( 5 ranges )
+        # frequency range setting
         self.bands = frequency_band
         self.bars = [0 for _ in range(len(self.bands))]
         self.max_amplitude = 0
         self.running = True
+        self.audiotype = audiotype
+        self.input_index = input_device_index
 
         # open WAV file
-        self.wf = wave.open(self.file_path, 'rb')
-        self.num_frames = self.wf.getnframes()
-        self.channels = self.wf.getnchannels()
-        self.rate = self.wf.getframerate()
+        # sampling rate, channels, sample length
+        if self.audiotype == 0:
+            self.wf = wave.open(self.file_path, 'rb')
+            self.num_frames = self.wf.getnframes()
+            self.channels = self.wf.getnchannels()
+            self.rate = self.wf.getframerate()
+            self.total_duration = self.num_frames / float(self.rate)
+        elif self.audiotype == 1:
+            self.wf = None
+            self.channels = 1
+            self.rate = 44100
         self.chunk_size = 1024  # audio data chunk size
-        self.total_duration = self.num_frames / float(self.rate)
 
     def run(self):
         p = pyaudio.PyAudio()
 
-        # sampling rate, channels, sample length
-        self.rate = self.wf.getframerate()
-        self.num_frames = self.wf.getnframes()
-        #print("frame num : ", self.num_frames)
-
         # open audio stream
-        stream = p.open(
-            format=p.get_format_from_width(self.wf.getsampwidth()),
-            channels=self.channels,
-            rate=self.rate,
-            output=True
-        )
+        if self.audiotype == 0:
+            stream = p.open(
+                format=p.get_format_from_width(self.wf.getsampwidth()),
+                channels=self.channels,
+                rate=self.rate,
+                output=True
+            )
+        elif self.audiotype == 1:
+            stream = p.open(
+                format=pyaudio.paInt16,
+                channels=self.channels,
+                rate=self.rate,
+                input=True,
+                input_device_index=self.input_index,
+                frames_per_buffer=1024
+            )
 
         # play audio data
-        read_cnt = 0
         while self.running:
-            data = self.wf.readframes(self.chunk_size)
-            if not data:
-                break
-            read_cnt += 1
-            #print(read_cnt * 1024)
-            
-            # output to speaker
-            stream.write(data)
+            if self.audiotype == 0:
+                data = self.wf.readframes(self.chunk_size)
+                if not data:
+                    break
+                
+                # output to speaker
+                stream.write(data)
+            else:
+                data = stream.read(1024)
+                if not data:
+                    break
 
             # FFT analysis
             audio_data = np.frombuffer(data, dtype=np.int16)
             fft_data = np.abs(np.fft.fft(audio_data))[:len(audio_data) // 2]  # 절반만 사용
-            freqs = np.fft.fftfreq(len(audio_data), d=1/self.wf.getframerate())[:len(audio_data) // 2]
+            freqs = np.fft.fftfreq(len(audio_data), d=1/self.rate)[:len(audio_data) // 2]
             self.calculate_bands(fft_data, freqs)
 
-            current_frame = self.wf.tell()
+            if self.audiotype == 0:
+                current_frame = self.wf.tell()
+            else:
+                current_frame = 0
 
             # Send UI update signal
             self.update_equalizer.emit([current_frame, self.bars])
@@ -90,7 +108,8 @@ class AudioPlayer(QThread):
         # stream end
         stream.stop_stream()
         stream.close()
-        self.wf.close()
+        if self.audiotype == 0:
+            self.wf.close()
         p.terminate()
         self.audiostatus.emit(True)
 
@@ -161,14 +180,14 @@ class EqualizerPreview(QWidget):
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, parent, devices, colorpresetnum):
+    def __init__(self, parent, settinginfos):
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setGeometry(100, 100, 600, 400)
         
-        self.selected_device_index = None  # 선택한 디바이스 인덱스
-        self.devices = devices
-        self.selected_equalizer_index = colorpresetnum
+        self.devices = settinginfos[0]
+        self.selected_device_index = settinginfos[1]
+        self.selected_equalizer_index = settinginfos[2]
 
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Settings dialog."))
@@ -234,6 +253,10 @@ class SettingsDialog(QDialog):
 
             # Input Channels
             table.setItem(row, 2, QTableWidgetItem(str(channels)))
+            if row == self.selected_device_index:
+                radio_button.setChecked(True)
+
+        
 
         # 테이블 옵션
         table.resizeColumnsToContents()
@@ -393,8 +416,7 @@ class EqualizerUI(QMainWindow):
             self.stop()
             
         # Audio Player 
-        self.audioplayer = AudioPlayer(file_path)
-
+        self.audioplayer = AudioPlayer(file_path, audiotype=0)
         self.audioplayer.update_equalizer.connect(self.update_bars)
         self.audioplayer.audiostatus.connect(self.checkaudiostatus)
         self.start()
@@ -402,6 +424,15 @@ class EqualizerUI(QMainWindow):
     # input audio signal from mic
     def onInputAudioMenu(self):
         self.commandtype = 1
+        if self.isrunning:
+            self.stop()
+
+        self.audioplayer = AudioPlayer(file_path=None, audiotype=1)
+        self.audioplayer.update_equalizer.connect(self.update_bars)
+        self.audioplayer.audiostatus.connect(self.checkaudiostatus)
+        self.start()
+
+
                 
     def onStopMenu(self):
         self.stop()
@@ -415,7 +446,7 @@ class EqualizerUI(QMainWindow):
             dev = p.get_device_info_by_index(i)
             self.devices.append((i, dev['name'], dev['maxInputChannels']))
 
-        dialog = SettingsDialog(self, self.devices, self.selected_equalizer_index)
+        dialog = SettingsDialog(self, [self.devices, self.selected_device_index, self.selected_equalizer_index])
         if dialog.exec_() == QDialog.Accepted:
             selected_index = dialog.selected_device_index
             if selected_index is not None:
@@ -428,16 +459,19 @@ class EqualizerUI(QMainWindow):
             self.equalizer.setColorPreset(color_presets[self.selected_equalizer_index])
 
             frequency_band = dialog.frequency_bands
+        
+
 
     def start(self):
         self.audioplayer.start()
         self.isrunning = True
         
-        # Show progress bar and clear status message
-        self.progress_bar.setVisible(True)
-        self.status_bar.clearMessage()
-        # Update slider range
-        self.progress_bar.setRange(0, int(self.audioplayer.total_duration * 1000))  # Milliseconds
+        if self.audioplayer.audiotype == 0:
+            # Show progress bar and clear status message
+            self.progress_bar.setVisible(True)
+            self.status_bar.clearMessage()
+            # Update slider range
+            self.progress_bar.setRange(0, int(self.audioplayer.total_duration * 1000))  # Milliseconds
 
 
     def stop(self):
@@ -451,7 +485,6 @@ class EqualizerUI(QMainWindow):
         current_frame = audioinfos[0]
         amplitudes = audioinfos[1]
         current_time = current_frame / float(self.audioplayer.rate)
-        #print(audioinfos, current_time)
         self.progress_bar.setValue(int(current_time * 1000))  # Milliseconds
         self.equalizer.setValues(amplitudes)
 
