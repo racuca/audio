@@ -470,7 +470,11 @@ class EqualizerUI(QMainWindow):
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             dev = p.get_device_info_by_index(i)
-            self.devices.append((i, dev['name'], dev['maxInputChannels'], dev['maxOutputChannels']))
+            self.devices.append((dev['index'], dev['name'], dev['maxInputChannels'], dev['maxOutputChannels']))
+
+        default_output_device_info = p.get_default_output_device_info()
+        self.selected_device_index = default_output_device_info['index']
+
         p.terminate()
 
 

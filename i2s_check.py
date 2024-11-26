@@ -10,4 +10,4 @@ print(default_output_device_info)
 
 for i in range(p.get_device_count()):
     dev = p.get_device_info_by_index(i)
-    print((i, dev['name'], dev['maxInputChannels'], dev['maxOutputChannels']))
+    print((dev['index'], dev['name'], dev['maxInputChannels'], dev['maxOutputChannels']))
